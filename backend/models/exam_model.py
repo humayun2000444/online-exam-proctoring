@@ -20,15 +20,17 @@ def get_all_exams():
     conn.close()
     return exams
 
-def save_proctoring_alert(user_id, message, timestamp):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO proctor_alerts (user_id, message, timestamp)
-        VALUES (%s, %s, %s)
-    """, (user_id, message, timestamp))
-    conn.commit()
-    conn.close()
+def save_proctoring_alert(user_id, message, timestamp, alert_type):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    query = """
+        INSERT INTO proctor_alerts (user_id, message, timestamp, alert_type)
+        VALUES (%s, %s, %s, %s)
+    """
+    cursor.execute(query, (user_id, message, timestamp, alert_type))
+    connection.commit()
+    cursor.close()
+    connection.close()
 
 # ---------------------- Count Alerts for a User ----------------------
 def get_alert_count_by_user(user_id):

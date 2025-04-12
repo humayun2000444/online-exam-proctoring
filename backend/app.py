@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
+from routes.student_management import student_bp
 from routes.auth_routes import auth_routes
 from routes.exam_routes import exam_bp
 
@@ -8,6 +9,7 @@ CORS(app)
 
 app.register_blueprint(auth_routes)
 app.register_blueprint(exam_bp)
+app.register_blueprint(student_bp)
 
 if __name__ == '__main__':
     app.run(debug=True)

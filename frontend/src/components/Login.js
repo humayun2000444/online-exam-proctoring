@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { saveToken } from '../utils/auth';
-import { useNavigate } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -52,12 +52,22 @@ const Login = () => {
                             placeholder="••••••••"
                         />
                     </div>
-                    <button
-                        type="submit"
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition duration-200"
-                    >
-                        Login
-                    </button>
+
+                    <div className="flex flex-col gap-4">
+                        <button
+                            type="submit"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition duration-200"
+                        >
+                            Login
+                        </button>
+                        <span >Don't have account ?</span>
+                        <Link to="/register">
+                            <button
+                                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded transition duration-200">
+                                Register
+                            </button>
+                        </Link>
+                    </div>
                 </form>
             </div>
         </div>

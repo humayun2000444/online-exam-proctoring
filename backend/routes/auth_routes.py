@@ -14,19 +14,43 @@ def register():
     name = data.get('name')
     email = data.get('email')
     password = data.get('password')
-    role = data.get('role', 'student')  # Default: student
+    role = data.get('role', 'student')  # Default to student
 
     if not name or not email or not password:
         return jsonify({"message": "Missing name, email, or password"}), 400
 
-    user = get_user_by_email(email)
-    if user:
+    if get_user_by_email(email):
         return jsonify({"message": "User already exists"}), 400
 
-    hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-    create_user(name, email, hashed_pw.decode('utf-8'), role)
+    try:
+        # Handle role-specific required fields
+        if role == 'student':
+            create_user(
+                name, email, password, role,
+                birthdate=data.get('birthdate'),
+                year=data.get('year'),
+                semester=data.get('semester'),
+                section=data.get('section'),
+                student_id=data.get('student_id')
+            )
+        elif role == 'teacher':
+            create_user(
+                name, email, password, role,
+                teacher_id=data.get('teacher_id'),
+                position=data.get('position'),
+                designation=data.get('designation')
+            )
+        else:
+            # For roles like admin
+            create_user(name, email, password, role)
 
-    return jsonify({"message": "User registered successfully"}), 201
+        return jsonify({"message": "User registered successfully"}), 201
+
+    except ValueError as ve:
+        return jsonify({"message": str(ve)}), 400
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"message": "Internal server error"}), 500
 
 
 @auth_routes.route('/login', methods=['POST'])
@@ -45,11 +69,17 @@ def login():
     if not user:
         return jsonify({"message": "Invalid credentials"}), 401
 
-    user_id, name, email, hashed_pw, role = user
+    user_id = user[0]
+    name = user[1]
+    db_email = user[2]
+    hashed_pw = user[3]
+    role = user[4]
+
     if not bcrypt.checkpw(password.encode('utf-8'), hashed_pw.encode('utf-8')):
         return jsonify({"message": "Invalid password"}), 401
 
     token = generate_token(user_id, role)
+
     return jsonify({
         "message": "Login successful",
         "token": token,
