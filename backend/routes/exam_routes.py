@@ -1,5 +1,5 @@
 # src/routes/exam_routes.py
-
+from datetime import datetime
 from flask import Blueprint, request, jsonify
 from functools import wraps
 import jwt
@@ -76,11 +76,18 @@ def get_exams_route(user_id, role):
 def report_proctor_alert(user_id, role):
     data = request.get_json()
     try:
-        save_proctoring_alert(user_id, data['message'], data['timestamp'])
-        return jsonify({"message": "Alert saved"})
+        alert_type = data.get('alert_type', 'general')
+        timestamp_str = data.get('timestamp')
+
+        # Handle ISO format (e.g., 2025-04-12T13:00:00Z)
+        timestamp = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+
+        save_proctoring_alert(user_id, data['message'], timestamp, alert_type)
+        return jsonify({"message": "✅ Alert saved"})
     except Exception as e:
         print(f"[ERROR] Saving proctor alert: {e}")
         return jsonify({"message": "Failed to save alert"}), 500
+
 
 
 @exam_bp.route('/submit_exam', methods=['POST'])

@@ -9,9 +9,11 @@ const ReportProctorAlert = ({ token }) => {
         e.preventDefault();
 
         try {
+            const formattedTimestamp = new Date(timestamp).toISOString().slice(0, 19).replace('T', ' ');
+
             const response = await axios.post(
                 '/api/exam/report_proctor_alert',
-                { message, timestamp },
+                { message, timestamp: formattedTimestamp },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -21,8 +23,10 @@ const ReportProctorAlert = ({ token }) => {
             alert(response.data.message);
         } catch (error) {
             alert('Failed to report proctor alert');
+            console.error(error);
         }
     };
+
 
     return (
         <div className="max-w-md mx-auto p-6 bg-white shadow-md rounded-md">
