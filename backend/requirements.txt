@@ -3,4 +3,6 @@ Flask-Cors
 Flask-MySQLdb
 PyJWT
 bcrypt
+mediapipe
 opencv-python
+ultralytics

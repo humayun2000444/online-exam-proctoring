@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link } from "react-router-dom";
+import toast from 'react-hot-toast';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -24,13 +25,22 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@diit\.(edu\.bd|info)$/;
+
+        if (!emailPattern.test(formData.email)) {
+            toast.error("Email must be example@diit.edu.bd or example@diit.info");
+            return;
+        }
+
         try {
             await axios.post('http://localhost:5000/register', formData);
-            alert("Registration Successful! Please Login.");
+            toast.success("Registration Successful! Please login.");
         } catch (error) {
-            alert(error.response?.data?.message || "Registration failed");
+            toast.error(error.response?.data?.message || "Registration failed");
         }
     };
+
 
     const renderRoleSpecificFields = () => {
         if (formData.role === 'student') {
@@ -167,7 +177,7 @@ const Register = () => {
                             onChange={handleChange}
                             required
                             className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                            placeholder="you@example.com"
+                            placeholder="example@diit.edu.bd or example@diit.info"
                         />
                     </div>
                     <div>
