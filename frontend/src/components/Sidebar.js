@@ -13,18 +13,13 @@ const Sidebar = ({ role }) => {
         <div className="w-64 bg-gray-900 text-white h-screen p-6 fixed top-0 left-0 shadow-lg">
             <div className="text-center mb-6">
                 <img
-                    src="/logo.png"
+                    src="/images/diit.png"
                     alt="Logo"
-                    className="h-16 w-16 mx-auto mb-2 rounded-full border-2 border-white"
+                    className="h-16 mx-auto mb-2"
                 />
-                <h2 className="text-2xl font-bold">Dashboard</h2>
             </div>
 
             <ul className="space-y-2">
-                <li>
-                    <Link to="/dashboard" className={menuItemClass('/dashboard')}>🏠 Home</Link>
-                </li>
-
                 {role === 'student' && (
                     <>
                         <li><Link to="/exam-form" className={menuItemClass('/exam-form')}>📝 Take Exam</Link></li>

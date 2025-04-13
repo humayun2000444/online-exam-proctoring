@@ -15,9 +15,18 @@ const Login = () => {
         e.preventDefault();
         try {
             const res = await axios.post('http://localhost:5000/login', formData);
-            saveToken(res.data.token, res.data.role);
+            const { token, role } = res.data;
+            saveToken(token, role);
             alert("Login Successful");
-            navigate("/dashboard");
+
+            // Redirect based on role
+            if (role === 'student') {
+                navigate("/student-dashboard");
+            } else if (role === 'teacher' || role === 'admin') {
+                navigate("/teacher-dashboard");
+            } else {
+                alert("Invalid role. Contact administrator.");
+            }
         } catch (error) {
             alert(error.response?.data?.message || "Login failed");
         }
