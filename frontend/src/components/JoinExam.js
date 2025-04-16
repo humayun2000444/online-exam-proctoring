@@ -1,283 +1,112 @@
-// import React, { useEffect, useRef, useState } from 'react';
-// import { loadModels, detectFaces } from '../utils/faceDetection';
-// import axios from 'axios';
-// import { getToken } from '../utils/auth';
-// import Sidebar from "./Sidebar";
-//
-// const JoinExam = () => {
-//     const videoRef = useRef();
-//     const [alerts, setAlerts] = useState([]);
-//     const [faceCount, setFaceCount] = useState(0);
-//     const [alertCount, setAlertCount] = useState(0);
-//     const [examSubmitted, setExamSubmitted] = useState(false);
-//
-//     const MAX_ALERTS = 5; // 👉 You can change threshold here
-//
-//     useEffect(() => {
-//         const initialize = async () => {
-//             await loadModels(); // ✅ Wait until models are loaded
-//             await startCamera();
-//             setupTabSwitchDetection();
-//             const interval = setInterval(checkFace, 3000);
-//             return () => clearInterval(interval);
-//         };
-//         initialize();
-//     }, []);
-//
-//
-//     const startCamera = async () => {
-//         try {
-//             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-//             videoRef.current.srcObject = stream;
-//         } catch (error) {
-//             sendAlert("Camera permission denied or not available");
-//         }
-//     };
-//
-//     const checkFace = async () => {
-//         const video = videoRef.current;
-//         if (video) {
-//             const canvas = document.createElement('canvas');
-//             canvas.width = video.videoWidth;
-//             canvas.height = video.videoHeight;
-//             const ctx = canvas.getContext('2d');
-//             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-//
-//             const detections = await detectFaces(canvas);
-//             setFaceCount(detections.length);
-//
-//             if (detections.length === 0) sendAlert("No face detected");
-//             else if (detections.length > 1) sendAlert("Multiple faces detected");
-//         }
-//     };
-//
-//
-//     const sendAlert = async (message) => {
-//         if (examSubmitted) return;
-//
-//         setAlerts(prev => [...prev, message]);
-//         const newCount = alertCount + 1;
-//         setAlertCount(newCount);
-//
-//         try {
-//             await axios.post("http://localhost:5000/report_proctor_alert", {
-//                 message,
-//                 timestamp: new Date().toISOString()
-//             }, {
-//                 headers: { Authorization: getToken() }
-//             });
-//         } catch (err) {
-//             console.error("Failed to send alert", err);
-//         }
-//
-//         if (newCount >= MAX_ALERTS) {
-//             autoSubmitExam();
-//         }
-//     };
-//
-//     const autoSubmitExam = async () => {
-//         setExamSubmitted(true);
-//         alert("❗ Exam auto-submitted due to suspicious activity!");
-//
-//         try {
-//             await axios.post("http://localhost:5000/submit_exam", {
-//                 reason: "auto-submit: proctoring alert threshold crossed",
-//                 timestamp: new Date().toISOString()
-//             }, {
-//                 headers: { Authorization: getToken() }
-//             });
-//         } catch (err) {
-//             console.error("Failed to auto-submit exam", err);
-//         }
-//     };
-//
-//     const setupTabSwitchDetection = () => {
-//         document.addEventListener("visibilitychange", () => {
-//             if (document.hidden) sendAlert("User switched tab or minimized window");
-//         });
-//         window.addEventListener("blur", () => {
-//             sendAlert("User switched window or lost focus");
-//         });
-//     };
-//
-//     return (
-//         <div className="flex flex-col items-center p-6 space-y-4 bg-gray-100 min-h-screen">
-//             <Sidebar role="student" />
-//             <h2 className="text-2xl font-semibold text-gray-700">Exam Proctoring in Progress...</h2>
-//             <video
-//                 ref={videoRef}
-//                 autoPlay
-//                 muted
-//                 width="500"
-//                 height="300"
-//                 className="border-2 border-gray-300 rounded-md"
-//             />
-//             <div className="flex space-x-4 mt-4">
-//                 <h4 className="text-xl text-gray-600">Detected Faces: {faceCount}</h4>
-//                 <h4 className="text-xl text-gray-600">Total Proctoring Alerts: {alertCount}</h4>
-//             </div>
-//             {examSubmitted && (
-//                 <h3 className="text-xl font-bold text-red-500 mt-4">❌ Exam Auto-Submitted</h3>
-//             )}
-//             <div className="mt-6 w-full max-w-md">
-//                 <h3 className="text-lg font-semibold text-gray-700">Proctoring Alerts:</h3>
-//                 <ul className="mt-2 space-y-2">
-//                     {alerts.map((a, i) => (
-//                         <li key={i} className="bg-yellow-100 p-2 rounded-md text-gray-700">
-//                             {a}
-//                         </li>
-//                     ))}
-//                 </ul>
-//             </div>
-//         </div>
-//     );
-// };
-//
-// export default JoinExam;
-
-
 import React, { useEffect, useRef, useState } from 'react';
-import { loadModels, detectFaces } from '../utils/faceDetection';
 import axios from 'axios';
-import { getToken } from '../utils/auth';
-import Sidebar from "./Sidebar";
 
 const JoinExam = () => {
-    const videoRef = useRef();
-    const [alerts, setAlerts] = useState([]);
-    const [faceCount, setFaceCount] = useState(0);
-    const [alertCount, setAlertCount] = useState(0);
-    const [examSubmitted, setExamSubmitted] = useState(false);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [alerts, setAlerts] = useState([]);
+  const [isStreaming, setIsStreaming] = useState(false);
 
-    const MAX_ALERTS = 5; // 👉 You can change threshold here
+  useEffect(() => {
+    startCamera();
 
-    useEffect(() => {
-        const initialize = async () => {
-            try {
-                await loadModels(); // ✅ Wait until models are loaded
-                await startCamera();
-                setupTabSwitchDetection();
-                const interval = setInterval(checkFace, 3000);
-                return () => clearInterval(interval);
-            } catch (error) {
-                console.error("Error during initialization", error);
-            }
-        };
-        initialize();
-    }, []);
+    const interval = setInterval(() => {
+      captureAndSendFrame();
+    }, 5000); // every 5 seconds
 
-    const startCamera = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            videoRef.current.srcObject = stream;
-        } catch (error) {
-            sendAlert("Camera permission denied or not available");
-        }
+    return () => {
+      stopCamera();
+      clearInterval(interval);
     };
+  }, []);
 
-    const checkFace = async () => {
-        const video = videoRef.current;
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      videoRef.current.srcObject = stream;
+      setIsStreaming(true);
+    } catch (err) {
+      console.error('Camera access denied:', err);
+    }
+  };
 
-        if (video && video.readyState >= 2) {  // Ensure video is ready
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const stopCamera = () => {
+    const stream = videoRef.current?.srcObject;
+    stream?.getTracks().forEach(track => track.stop());
+    setIsStreaming(false);
+  };
 
-            try {
-                const detections = await detectFaces(canvas);  // Detect faces from the canvas
-                setFaceCount(detections.length);
+  const captureAndSendFrame = async () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
 
-                if (detections.length === 0) sendAlert("No face detected");
-                else if (detections.length > 1) sendAlert("Multiple faces detected");
-            } catch (err) {
-                console.error("Face detection failed", err);
-            }
-        } else {
-            console.error("Video element not ready");
-        }
-    };
+    if (!video || !canvas) return;
 
-    const sendAlert = async (message) => {
-        if (examSubmitted) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-        setAlerts(prev => [...prev, message]);
-        const newCount = alertCount + 1;
-        setAlertCount(newCount);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/jpeg');
+    const base64Image = dataUrl.split(',')[1];
 
-        try {
-            await axios.post("http://localhost:5000/report_proctor_alert", {
-                message,
-                timestamp: new Date().toISOString()
-            }, {
-                headers: { Authorization: getToken() }
-            });
-        } catch (err) {
-            console.error("Failed to send alert", err);
-        }
+    try {
+      const response = await axios.post('http://localhost:5000/analyze', {
+        image: base64Image
+      });
 
-        if (newCount >= MAX_ALERTS) {
-            autoSubmitExam();
-        }
-    };
+      const { mob_status, person_status, user_move1, user_move2 } = response.data;
+      const newAlerts = [];
 
-    const autoSubmitExam = async () => {
-        setExamSubmitted(true);
-        alert("❗ Exam auto-submitted due to suspicious activity!");
+      if (mob_status) newAlerts.push('📱 Mobile Phone Detected');
+      if (person_status) newAlerts.push('🧍 Multiple Persons Detected');
+      if (user_move1 || user_move2) newAlerts.push('👀 Gaze Deviation Detected');
 
-        try {
-            await axios.post("http://localhost:5000/submit_exam", {
-                reason: "auto-submit: proctoring alert threshold crossed",
-                timestamp: new Date().toISOString()
-            }, {
-                headers: { Authorization: getToken() }
-            });
-        } catch (err) {
-            console.error("Failed to auto-submit exam", err);
-        }
-    };
+      setAlerts(newAlerts);
+    } catch (error) {
+      console.error('Error sending frame:', error);
+    }
+  };
 
-    const setupTabSwitchDetection = () => {
-        document.addEventListener("visibilitychange", () => {
-            if (document.hidden) sendAlert("User switched tab or minimized window");
-        });
-        window.addEventListener("blur", () => {
-            sendAlert("User switched window or lost focus");
-        });
-    };
+  return (
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">🎓 Exam Proctoring In Progress</h1>
 
-    return (
-        <div className="flex flex-col items-center p-6 space-y-4 bg-gray-100 min-h-screen">
-            <Sidebar role="student" />
-            <h2 className="text-2xl font-semibold text-gray-700">Exam Proctoring in Progress...</h2>
-            <video
-                ref={videoRef}
-                autoPlay
-                muted
-                width="500"
-                height="300"
-                className="border-2 border-gray-300 rounded-md"
-            />
-            <div className="flex space-x-4 mt-4">
-                <h4 className="text-xl text-gray-600">Detected Faces: {faceCount}</h4>
-                <h4 className="text-xl text-gray-600">Total Proctoring Alerts: {alertCount}</h4>
-            </div>
-            {examSubmitted && (
-                <h3 className="text-xl font-bold text-red-500 mt-4">❌ Exam Auto-Submitted</h3>
-            )}
-            <div className="mt-6 w-full max-w-md">
-                <h3 className="text-lg font-semibold text-gray-700">Proctoring Alerts:</h3>
-                <ul className="mt-2 space-y-2">
-                    {alerts.map((a, i) => (
-                        <li key={i} className="bg-yellow-100 p-2 rounded-md text-gray-700">
-                            {a}
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        </div>
-    );
+      <div className="relative w-full max-w-3xl rounded-lg overflow-hidden shadow-xl border border-gray-300 bg-white">
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          className="w-full aspect-video object-cover"
+        />
+        <canvas ref={canvasRef} className="hidden" />
+      </div>
+
+      <div className="mt-6 w-full max-w-3xl">
+        <h2 className="text-xl font-semibold mb-2">🔔 Alerts</h2>
+        {alerts.length > 0 ? (
+          <ul className="space-y-2">
+            {alerts.map((alert, index) => (
+              <li key={index} className="bg-red-100 text-red-700 px-4 py-2 rounded shadow">
+                {alert}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-green-600">✅ All Clear – No Issues Detected</p>
+        )}
+      </div>
+
+      <div className="mt-8">
+        <button
+          onClick={stopCamera}
+          className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded"
+        >
+          ❌ Stop Proctoring
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default JoinExam;
