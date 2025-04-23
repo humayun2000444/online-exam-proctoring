@@ -4,7 +4,14 @@ import axios from 'axios';
 const JoinExam = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const [alerts, setAlerts] = useState([]);
+  const [alerts, setAlerts] = useState({
+    alerts: [],
+    gazeDirection: '',
+    faceDetected: false,
+    suspiciousObjects: {},
+    audioAnalysis: {},
+    metadata: {},
+  });
   const [isStreaming, setIsStreaming] = useState(false);
 
   useEffect(() => {
@@ -12,7 +19,7 @@ const JoinExam = () => {
 
     const interval = setInterval(() => {
       captureAndSendFrame();
-    }, 5000); // every 5 seconds
+    }, 3000); // every 5 seconds
 
     return () => {
       stopCamera();
@@ -52,60 +59,110 @@ const JoinExam = () => {
 
     try {
       const response = await axios.post('http://localhost:5000/analyze', {
-        image: base64Image
+        image: base64Image,
       });
 
-      const { mob_status, person_status, user_move1, user_move2 } = response.data;
+      const data = response.data;
+
       const newAlerts = [];
 
-      if (mob_status) newAlerts.push('📱 Mobile Phone Detected');
-      if (person_status) newAlerts.push('🧍 Multiple Persons Detected');
-      if (user_move1 || user_move2) newAlerts.push('👀 Gaze Deviation Detected');
+      if (data.suspicious_objects?.mobile_phone) newAlerts.push('📱 Mobile Phone Detected');
+      if (data.suspicious_objects?.person && data.facial_analysis?.no_face)
+        newAlerts.push('🧍 Person Detected but No Face Visible');
+      if (data.facial_analysis?.multiple_faces) newAlerts.push('👥 Multiple Faces Detected');
+      if (
+          data.facial_analysis?.left_movement ||
+          data.facial_analysis?.right_movement ||
+          data.facial_analysis?.consistent_left_movement ||
+          data.facial_analysis?.consistent_right_movement
+      )
+        newAlerts.push('👀 Head/Gaze Movement Detected');
+      if (data.audio_analysis?.mouth_open) newAlerts.push('🗣️ Mouth Open (Possible Talking)');
+      if (data.facial_analysis?.face_distance_change)
+        newAlerts.push('↔️ Face Distance Changed');
 
-      setAlerts(newAlerts);
+      setAlerts({
+        alerts: newAlerts,
+        gazeDirection: data.facial_analysis?.gaze_direction || '',
+        faceDetected: data.facial_analysis?.face_detected || false,
+        suspiciousObjects: data.suspicious_objects || {},
+        audioAnalysis: data.audio_analysis || {},
+        metadata: data.metadata || {},
+      });
     } catch (error) {
       console.error('Error sending frame:', error);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">🎓 Exam Proctoring In Progress</h1>
+      <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">
+          🎓 Exam Proctoring In Progress
+        </h1>
 
-      <div className="relative w-full max-w-3xl rounded-lg overflow-hidden shadow-xl border border-gray-300 bg-white">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          className="w-full aspect-video object-cover"
-        />
-        <canvas ref={canvasRef} className="hidden" />
-      </div>
+        <div className="relative w-full max-w-3xl rounded-lg overflow-hidden shadow-xl border border-gray-300 bg-white">
+          <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="w-full aspect-video object-cover"
+          />
+          <canvas ref={canvasRef} className="hidden" />
+        </div>
 
-      <div className="mt-6 w-full max-w-3xl">
-        <h2 className="text-xl font-semibold mb-2">🔔 Alerts</h2>
-        {alerts.length > 0 ? (
-          <ul className="space-y-2">
-            {alerts.map((alert, index) => (
-              <li key={index} className="bg-red-100 text-red-700 px-4 py-2 rounded shadow">
-                {alert}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-green-600">✅ All Clear – No Issues Detected</p>
-        )}
-      </div>
+        <div className="mt-6 w-full max-w-3xl">
+          <h2 className="text-xl font-semibold mb-2">🔔 Alerts</h2>
+          {alerts.alerts.length > 0 ? (
+              <ul className="space-y-2">
+                {alerts.alerts.map((alert, index) => (
+                    <li
+                        key={index}
+                        className="bg-red-100 text-red-700 px-4 py-2 rounded shadow"
+                    >
+                      {alert}
+                    </li>
+                ))}
+              </ul>
+          ) : (
+              <p className="text-green-600">✅ All Clear – No Issues Detected</p>
+          )}
 
-      <div className="mt-8">
-        <button
-          onClick={stopCamera}
-          className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded"
-        >
-          ❌ Stop Proctoring
-        </button>
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white p-4 rounded shadow border">
+              <h3 className="font-semibold mb-2">🧠 Facial & Audio Analysis</h3>
+              <p>Face Detected: {alerts.faceDetected ? '✅ Yes' : '❌ No'}</p>
+              <p>Gaze Direction: {alerts.gazeDirection || '—'}</p>
+              <p>Mouth Open: {alerts.audioAnalysis.mouth_open ? '🗣️ Yes' : '🤐 No'}</p>
+            </div>
+
+            <div className="bg-white p-4 rounded shadow border">
+              <h3 className="font-semibold mb-2">🎒 Suspicious Objects</h3>
+              {alerts.suspiciousObjects &&
+                  Object.entries(alerts.suspiciousObjects).map(([key, value]) => (
+                      <p key={key}>
+                        {key.replace(/_/g, ' ')}: {value ? '🚨 Detected' : '✅ Clear'}
+                      </p>
+                  ))}
+            </div>
+
+            <div className="bg-white p-4 rounded shadow border col-span-full">
+              <h3 className="font-semibold mb-2">📝 Metadata</h3>
+              <p>Status: {alerts.metadata.status || '—'}</p>
+              <p>Alert: {alerts.metadata.alert || 'None'}</p>
+              <p>Processing Time: {alerts.metadata.processing_time || '—'}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8">
+          <button
+              onClick={stopCamera}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded"
+          >
+            ❌ Stop Proctoring
+          </button>
+        </div>
       </div>
-    </div>
   );
 };
 
