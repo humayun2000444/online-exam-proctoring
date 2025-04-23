@@ -1,2 +1,6 @@
 *.pyc
 __pycache__/
+
+# Ignore all .dat and .weights files in models directory
+backend/models/*.dat
+backend/models/*.weights
