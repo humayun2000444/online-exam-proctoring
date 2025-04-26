@@ -141,6 +141,9 @@ online-exam-proctoring/
 │   ├── package.json
 │   └── src/
 │
+├── mysql/
+│   └── schema.sql
+│
 └── README.md
 ```
 
