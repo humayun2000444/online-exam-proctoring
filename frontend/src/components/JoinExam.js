@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
+import config from '../config';
 
 const JoinExam = () => {
   const videoRef = useRef(null);
@@ -58,7 +59,7 @@ const JoinExam = () => {
     const base64Image = dataUrl.split(',')[1];
 
     try {
-      const response = await axios.post('http://localhost:5000/analyze', {
+      const response = await axios.post(`${config.API_BASE_URL}/analyze`, {
         image: base64Image,
       });
 

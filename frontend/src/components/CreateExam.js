@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { getToken } from '../utils/auth';
 import Sidebar from "./Sidebar";
+import config from '../config';
 
 const CreateExam = () => {
     const [formData, setFormData] = useState({
@@ -15,7 +16,7 @@ const CreateExam = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/create_exam', formData, {
+            await axios.post(`${config.API_BASE_URL}/create_exam`, formData, {
                 headers: { Authorization: getToken() }
             });
             alert("Exam Created!");

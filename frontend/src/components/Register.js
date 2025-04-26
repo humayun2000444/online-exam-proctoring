@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Link } from "react-router-dom";
 import toast from 'react-hot-toast';
+import config from "../config";
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -34,7 +35,7 @@ const Register = () => {
         }
 
         try {
-            await axios.post('http://localhost:5000/register', formData);
+            await axios.post(`${config.API_BASE_URL}/register`, formData);
             toast.success("Registration Successful! Please login.");
         } catch (error) {
             toast.error(error.response?.data?.message || "Registration failed");

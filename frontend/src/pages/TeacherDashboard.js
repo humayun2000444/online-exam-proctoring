@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Sidebar from '../components/Sidebar';
-
+import config from '../config';
 const TeacherDashboard = () => {
     const [students, setStudents] = useState([]);
 
@@ -9,7 +9,7 @@ const TeacherDashboard = () => {
         // Fetch student data from the backend API
         const fetchStudents = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/students');
+                const response = await axios.get(`${config.API_BASE_URL}/api/students`);
                 setStudents(response.data);
             } catch (error) {
                 console.error('Error fetching student data:', error);

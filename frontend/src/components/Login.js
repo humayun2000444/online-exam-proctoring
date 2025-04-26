@@ -3,6 +3,7 @@ import axios from 'axios';
 import { saveToken } from '../utils/auth';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from "react-hot-toast";
+import config from "../config";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -15,7 +16,7 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:5000/login', formData);
+            const res = await axios.post(`${config.API_BASE_URL}/login`, formData);
             const { token, role } = res.data;
             saveToken(token, role);
             toast.success('Login Successful!', {

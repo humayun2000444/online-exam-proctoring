@@ -3,6 +3,7 @@ import axios from 'axios';
 import { getToken } from '../utils/auth';
 import Sidebar from "./Sidebar";
 import {Link} from "react-router-dom";
+import config from "../config";
 
 const ExamForm = () => {
     const [questions, setQuestions] = useState([]);
@@ -29,7 +30,7 @@ const ExamForm = () => {
 
     const fetchQuestions = async () => {
         try {
-            const res = await axios.get("http://localhost:5000/get_exam_questions", {
+            const res = await axios.get(`${config.API_BASE_URL}/get_exams`, {
                 headers: { Authorization: getToken() }
             });
             setQuestions(res.data.questions);
@@ -44,7 +45,7 @@ const ExamForm = () => {
 
     const handleSubmit = async () => {
         try {
-            await axios.post("http://localhost:5000/submit_answers", {
+            await axios.post(`${config.API_BASE_URL}/submit_answers`, {
                 answers,
                 timestamp: new Date().toISOString()
             }, {

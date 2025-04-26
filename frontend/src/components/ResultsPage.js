@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { getToken } from '../utils/auth';
 import Sidebar from './Sidebar';
+import config from "../config";
 
 const ResultsPage = () => {
     const [results, setResults] = useState(null);
@@ -13,7 +14,7 @@ const ResultsPage = () => {
 
     const fetchResults = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/get_exam_results', {
+            const res = await axios.get(`${config.API_BASE_URL}/get_exam_results`, {
                 headers: { Authorization: getToken() }
             });
             setResults(res.data);

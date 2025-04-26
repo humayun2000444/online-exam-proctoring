@@ -1,12 +1,16 @@
 from flask import Flask
-from flask_cors import CORS
 from routes.student_management import student_bp
 from routes.auth_routes import auth_routes
 from routes.exam_routes import exam_bp
 from routes.proctoring_routes import proctoring_bp
 
+# Import your CORS handler
+from utils.cors_handler import configure_cors
+
 app = Flask(__name__)
-CORS(app)
+
+# Setup CORS
+configure_cors(app)
 
 # Register all blueprints
 app.register_blueprint(auth_routes)
