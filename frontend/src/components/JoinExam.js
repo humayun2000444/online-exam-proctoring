@@ -15,6 +15,7 @@ const JoinExam = () => {
   });
   const [isStreaming, setIsStreaming] = useState(false);
 
+
   useEffect(() => {
     startCamera();
 
@@ -42,7 +43,16 @@ const JoinExam = () => {
     const stream = videoRef.current?.srcObject;
     stream?.getTracks().forEach(track => track.stop());
     setIsStreaming(false);
+    setAlerts({
+      alerts: [],
+      gazeDirection: '',
+      faceDetected: false,
+      suspiciousObjects: {},
+      audioAnalysis: {},
+      metadata: {},
+    });
   };
+
 
   const captureAndSendFrame = async () => {
     const video = videoRef.current;
@@ -92,6 +102,10 @@ const JoinExam = () => {
       });
     } catch (error) {
       console.error('Error sending frame:', error);
+      setAlerts(prev => ({
+        ...prev,
+        alerts: ['⚠️ Error analyzing frame. Check your connection.']
+      }));
     }
   };
 
