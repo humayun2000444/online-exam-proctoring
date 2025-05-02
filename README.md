@@ -79,7 +79,7 @@ backend/database/db.py
 ```python
 host = "localhost"
 user = "root"
-passwd = "Takay1takaane$"
+passwd = "password"
 db = "exam_db"
 ```
 
