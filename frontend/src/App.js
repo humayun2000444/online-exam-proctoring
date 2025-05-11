@@ -2,8 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import Home from './pages/Home';
-import Login from './components/Login';
-import Register from './components/Register';
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
 import CreateExam from './components/CreateExam';
 import Exam from './components/ResultsPage';
 import ExamForm from './components/ExamForm';
@@ -14,6 +14,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import PrivateRoute from './utils/PrivateRoute';
 import { Toaster } from 'react-hot-toast';
+import StudentProfile from "./components/StudentProfile";
 
 const App = () => {
     return (
@@ -84,6 +85,10 @@ const App = () => {
                         </PrivateRoute>
                     }
                 />
+                <Route path="/teacher-dashboard" element={<TeacherDashboard />}>
+                    <Route path="student/:id" element={<StudentProfile />} /> {/* Nested route */}
+                </Route>
+
                 <Route
                     path="/create-exam"
                     element={

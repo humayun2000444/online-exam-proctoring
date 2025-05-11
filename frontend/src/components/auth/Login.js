@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { saveToken } from '../utils/auth';
+import { saveToken } from '../../utils/auth';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from "react-hot-toast";
-import config from "../config";
+import config from "../../config";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -43,6 +43,11 @@ const Login = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-200 to-blue-300 p-6">
             <div className="bg-white shadow-2xl rounded-2xl p-10 w-full max-w-md">
+                {/* Logo */}
+                <div className="flex justify-center mb-6">
+                    <img src="/images/diit.png" alt="DIIT Logo" className="h-16 w-auto" />
+                </div>
+
                 <h2 className="text-3xl font-extrabold text-center text-gray-800 mb-6">Login to Your Account</h2>
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div>

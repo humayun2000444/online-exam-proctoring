@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Link } from "react-router-dom";
 import toast from 'react-hot-toast';
-import config from "../config";
+import config from "../../config";
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -93,24 +93,32 @@ const Register = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-200 to-blue-300 p-6">
             <div className="bg-white shadow-2xl rounded-2xl p-10 w-full max-w-xl">
+                <div className="flex justify-center mb-6">
+                    <img src="/images/diit.png" alt="DIIT Logo" className="h-16 w-auto"/>
+                </div>
                 <h2 className="text-3xl font-extrabold text-center text-gray-800 mb-6">Create Your Account</h2>
                 <form onSubmit={handleSubmit} className="space-y-5">
                     {/* Use grid with 2 columns for input fields */}
                     <div className="grid grid-cols-2 gap-6">
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
-                            <input name="name" type="text" value={formData.name} onChange={handleChange} required className={inputClass} placeholder="Your Name" />
+                            <input name="name" type="text" value={formData.name} onChange={handleChange} required
+                                   className={inputClass} placeholder="Your Name"/>
                         </div>
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                            <input name="email" type="email" value={formData.email} onChange={handleChange} required className={inputClass} placeholder="example@diit.edu.bd or example@diit.info" />
+                            <input name="email" type="email" value={formData.email} onChange={handleChange} required
+                                   className={inputClass} placeholder="example@diit.edu.bd or example@diit.info"/>
                         </div>
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                            <input name="password" type="password" value={formData.password} onChange={handleChange} required className={inputClass} placeholder="••••••••" />
+                            <label htmlFor="password"
+                                   className="block text-sm font-medium text-gray-700">Password</label>
+                            <input name="password" type="password" value={formData.password} onChange={handleChange}
+                                   required className={inputClass} placeholder="••••••••"/>
                         </div>
                         <div>
-                            <label htmlFor="role" className="block text-sm font-medium text-gray-700">Select Role</label>
+                            <label htmlFor="role" className="block text-sm font-medium text-gray-700">Select
+                                Role</label>
                             <select name="role" value={formData.role} onChange={handleChange} className={inputClass}>
                                 <option value="student">Student</option>
                                 <option value="teacher">Teacher</option>
@@ -123,12 +131,14 @@ const Register = () => {
 
                     {/* Buttons in full width below */}
                     <div className="pt-4 space-y-3">
-                        <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition duration-200">
+                        <button type="submit"
+                                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition duration-200">
                             Register
                         </button>
                         <div className="text-center text-sm text-gray-600">Already have an account?</div>
                         <Link to="/login">
-                            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition duration-200">
+                            <button
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition duration-200">
                                 Login
                             </button>
                         </Link>
