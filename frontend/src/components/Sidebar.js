@@ -22,21 +22,24 @@ const Sidebar = ({ role }) => {
             <ul className="space-y-2">
                 {role === 'student' && (
                     <>
-                        <li><Link to="/exam-form" className={menuItemClass('/exam-form')}>📝 Take Exam</Link></li>
-                        <li><Link to="/join-exam" className={menuItemClass('/join-exam')}>🎯 Join Exam</Link></li>
-                        <li><Link to="/resultspage" className={menuItemClass('/resultspage')}>🎯 Results Page</Link></li>
+                        <li><Link to="/student-dashboard" className={menuItemClass('/student-dashboard')}>Home</Link></li>
+                        <li><Link to="/join-exam" className={menuItemClass('/join-exam')}>Join Exam</Link></li>
+                        <li><Link to="/resultspage" className={menuItemClass('/resultspage')}>Results Page</Link></li>
                     </>
                 )}
 
                 {role === 'teacher' && (
                     <>
+                        <li><Link to="/teacher-dashboard" className={menuItemClass('/teacher-dashboard')}>Home</Link>
+                        </li>
+                        <li><Link to="/poctor-live-exam" className={menuItemClass('/poctor-live-exam')}>Live Exam</Link></li>
                         <li><Link to="/create-exam" className={menuItemClass('/create-exam')}>➕ Create Exam</Link></li>
                     </>
                 )}
 
                 {role === 'admin' && (
                     <>
-                        <li><Link to="/create-exam" className={menuItemClass('/create-exam')}>➕ Create Exam</Link></li>
+                    <li><Link to="/create-exam" className={menuItemClass('/create-exam')}>➕ Create Exam</Link></li>
                         <li><Link to="/teacher-dashboard" className={menuItemClass('/teacher-dashboard')}>📋 Teacher Dashboard</Link></li>
                         <li><Link to="/student-dashboard" className={menuItemClass('/student-dashboard')}>📚 Student Dashboard</Link></li>
                     </>

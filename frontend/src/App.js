@@ -15,6 +15,7 @@ import TeacherDashboard from './pages/TeacherDashboard';
 import PrivateRoute from './utils/PrivateRoute';
 import { Toaster } from 'react-hot-toast';
 import StudentProfile from "./components/StudentProfile";
+import PoctorExam from './components/ProctorExam';
 
 const App = () => {
     return (
@@ -43,6 +44,17 @@ const App = () => {
                         </PrivateRoute>
                     }
                 />
+                <Route
+                    path="/poctor-live-exam"
+                    element={
+                        <PrivateRoute allowedRoles={['teacher', 'admin']}>
+                            <PoctorExam />
+                        </PrivateRoute>
+                    }
+                />
+                <Route path="/teacher-dashboard" element={<TeacherDashboard />}>
+                    <Route path="student/:id" element={<StudentProfile />} /> {/* Nested route */}
+                </Route>
 
                 {/* Other Protected Routes */}
                 <Route
@@ -85,9 +97,7 @@ const App = () => {
                         </PrivateRoute>
                     }
                 />
-                <Route path="/teacher-dashboard" element={<TeacherDashboard />}>
-                    <Route path="student/:id" element={<StudentProfile />} /> {/* Nested route */}
-                </Route>
+
 
                 <Route
                     path="/create-exam"

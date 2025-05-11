@@ -1,27 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
+import Sidebar from '../components/Sidebar';
 import config from '../config';
 
 const JoinExam = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const [alerts, setAlerts] = useState({
-    alerts: [],
-    gazeDirection: '',
-    faceDetected: false,
-    suspiciousObjects: {},
-    audioAnalysis: {},
-    metadata: {},
-  });
   const [isStreaming, setIsStreaming] = useState(false);
-
+  const [alerts, setAlerts] = useState([]);
 
   useEffect(() => {
     startCamera();
 
     const interval = setInterval(() => {
       captureAndSendFrame();
-    }, 3000); // every 5 seconds
+    }, 3000); // every 3 seconds
 
     return () => {
       stopCamera();
@@ -43,16 +36,7 @@ const JoinExam = () => {
     const stream = videoRef.current?.srcObject;
     stream?.getTracks().forEach(track => track.stop());
     setIsStreaming(false);
-    setAlerts({
-      alerts: [],
-      gazeDirection: '',
-      faceDetected: false,
-      suspiciousObjects: {},
-      audioAnalysis: {},
-      metadata: {},
-    });
   };
-
 
   const captureAndSendFrame = async () => {
     const video = videoRef.current;
@@ -72,110 +56,82 @@ const JoinExam = () => {
       const response = await axios.post(`${config.API_BASE_URL}/analyze`, {
         image: base64Image,
       });
-
       const data = response.data;
-
       const newAlerts = [];
 
+      // Dummy logic for adding alerts
       if (data.suspicious_objects?.mobile_phone) newAlerts.push('📱 Mobile Phone Detected');
-      if (data.suspicious_objects?.person && data.facial_analysis?.no_face)
-        newAlerts.push('🧍 Person Detected but No Face Visible');
-      if (data.facial_analysis?.multiple_faces) newAlerts.push('👥 Multiple Faces Detected');
-      if (
-          data.facial_analysis?.left_movement ||
-          data.facial_analysis?.right_movement ||
-          data.facial_analysis?.consistent_left_movement ||
-          data.facial_analysis?.consistent_right_movement
-      )
-        newAlerts.push('👀 Head/Gaze Movement Detected');
-      if (data.audio_analysis?.mouth_open) newAlerts.push('🗣️ Mouth Open (Possible Talking)');
-      if (data.facial_analysis?.face_distance_change)
-        newAlerts.push('↔️ Face Distance Changed');
+      if (data.facial_analysis?.no_face) newAlerts.push('❌ No Face Detected');
 
-      setAlerts({
-        alerts: newAlerts,
-        gazeDirection: data.facial_analysis?.gaze_direction || '',
-        faceDetected: data.facial_analysis?.face_detected || false,
-        suspiciousObjects: data.suspicious_objects || {},
-        audioAnalysis: data.audio_analysis || {},
-        metadata: data.metadata || {},
-      });
+      setAlerts(newAlerts);
     } catch (error) {
       console.error('Error sending frame:', error);
-      setAlerts(prev => ({
-        ...prev,
-        alerts: ['⚠️ Error analyzing frame. Check your connection.']
-      }));
     }
   };
 
+  // Dummy exam data
+  const examData = {
+    question: 'What is the capital of France?',
+    options: ['Berlin', 'Madrid', 'Paris', 'Rome'],
+    correctAnswer: 'Paris',
+  };
+
   return (
-      <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">
-          🎓 Exam Proctoring In Progress
-        </h1>
+      <div className="flex min-h-screen">
+        {/* Sidebar */}
+        <Sidebar role="student" />
 
-        <div className="relative w-full max-w-3xl rounded-lg overflow-hidden shadow-xl border border-gray-300 bg-white">
-          <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              className="w-full aspect-video object-cover"
-          />
-          <canvas ref={canvasRef} className="hidden" />
-        </div>
-
-        <div className="mt-6 w-full max-w-3xl">
-          <h2 className="text-xl font-semibold mb-2">🔔 Alerts</h2>
-          {alerts.alerts.length > 0 ? (
-              <ul className="space-y-2">
-                {alerts.alerts.map((alert, index) => (
-                    <li
-                        key={index}
-                        className="bg-red-100 text-red-700 px-4 py-2 rounded shadow"
-                    >
-                      {alert}
-                    </li>
+        {/* Main Content */}
+        <div className="ml-64 w-full p-8 space-y-8 bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Exam Section */}
+            <div className="bg-white rounded-lg shadow-xl p-6">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">📝 Exam Question</h2>
+              <p className="text-xl text-gray-600 mb-4">{examData.question}</p>
+              <div className="space-y-2">
+                {examData.options.map((option, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <input type="radio" id={`option${index}`} name="answer" value={option} className="w-4 h-4 text-blue-500" />
+                      <label htmlFor={`option${index}`} className="text-lg text-gray-700">{option}</label>
+                    </div>
                 ))}
-              </ul>
-          ) : (
-              <p className="text-green-600">✅ All Clear – No Issues Detected</p>
-          )}
-
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white p-4 rounded shadow border">
-              <h3 className="font-semibold mb-2">🧠 Facial & Audio Analysis</h3>
-              <p>Face Detected: {alerts.faceDetected ? '✅ Yes' : '❌ No'}</p>
-              <p>Gaze Direction: {alerts.gazeDirection || '—'}</p>
-              <p>Mouth Open: {alerts.audioAnalysis.mouth_open ? '🗣️ Yes' : '🤐 No'}</p>
+              </div>
+              <div className="flex justify-end mt-6">
+                <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                  Submit Answer
+                </button>
+              </div>
             </div>
 
-            <div className="bg-white p-4 rounded shadow border">
-              <h3 className="font-semibold mb-2">🎒 Suspicious Objects</h3>
-              {alerts.suspiciousObjects &&
-                  Object.entries(alerts.suspiciousObjects).map(([key, value]) => (
-                      <p key={key}>
-                        {key.replace(/_/g, ' ')}: {value ? '🚨 Detected' : '✅ Clear'}
-                      </p>
-                  ))}
-            </div>
-
-            <div className="bg-white p-4 rounded shadow border col-span-full">
-              <h3 className="font-semibold mb-2">📝 Metadata</h3>
-              <p>Status: {alerts.metadata.status || '—'}</p>
-              <p>Alert: {alerts.metadata.alert || 'None'}</p>
-              <p>Processing Time: {alerts.metadata.processing_time || '—'}</p>
+            {/* Video Section */}
+            <div className="relative flex justify-end">
+              <div className="absolute top-4 right-4 bg-white p-3 rounded-lg shadow-xl border-4 border-blue-500">
+                <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    className="w-32 h-32 object-cover rounded-lg"
+                />
+                <canvas ref={canvasRef} className="hidden" />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="mt-8">
-          <button
-              onClick={stopCamera}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded"
-          >
-            ❌ Stop Proctoring
-          </button>
+          {/* Alerts */}
+          <div className="bg-white p-6 rounded-2xl shadow-lg mt-8">
+            <h3 className="text-2xl font-semibold text-gray-800">🔔 Alerts</h3>
+            <div className="mt-4 space-y-2">
+              {alerts.length > 0 ? (
+                  alerts.map((alert, index) => (
+                      <div key={index} className="bg-red-100 text-red-700 px-4 py-2 rounded-md">
+                        {alert}
+                      </div>
+                  ))
+              ) : (
+                  <p className="text-green-600">✅ All Clear – No Issues Detected</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
   );
